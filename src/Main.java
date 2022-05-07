@@ -1,15 +1,25 @@
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class Main {
+    public static StringBuilder logText = new StringBuilder();
 
     public static void main(String[] args) {
         String installDirPath = "D://Games";
 
+
         if (install(installDirPath)) {
-            System.out.println("Установка прошла успешно");
+            logText.append("Все файлы созданы успешно").append("\n");
         } else {
-            System.out.println("Установка не прошла");
+            logText.append("Не все файйлы успешно созданы").append("\n");
+        }
+        try (FileOutputStream fos = new FileOutputStream(installDirPath + "/temp/temp.txt")) {
+            byte[] bytes = logText.toString().getBytes();
+            fos.write(bytes, 0, bytes.length);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -19,63 +29,69 @@ public class Main {
         String[] mainFiles = {"Main.java", "Utils.java"};
         String[] resDirs = {"drawables", "vectors", "icons"};
         String[] tempFiles = {"temp.txt"};
+        int countAll = 0;
+        int countDone = 0;
 
         // Проверка существования пути назначения
         File installDir = new File(installDirPath);
         if (!installDir.isDirectory()) {
-            System.out.println("директория не существует: " + installDirPath);
-            return false;
+            logText.append("директория не существует:\t").append(installDirPath).append("\n");
         }
 
         // В папке Games создайте несколько директорий: src, res, savegames, temp.
         for (String dir : rootDirs) {
-            if (!makeDir(installDirPath + "/" + dir)) {
-                return false;
+            countAll++;
+            if (makeDir(installDirPath + "/" + dir)) {
+                countDone++;
             }
         }
 
         // В каталоге src создайте две директории: main, test.
         for (String dir : srcDirs) {
-            if (!makeDir(installDirPath + "/src/" + dir)) {
-                return false;
+            countAll++;
+            if (makeDir(installDirPath + "/src/" + dir)) {
+                countDone++;
             }
         }
 
         // В подкаталоге main создайте два файла: Main.java, Utils.java.
         for (String file : mainFiles) {
-            if (!makeFile(installDirPath + "/src/main/" + file)) {
-                return false;
+            countAll++;
+            if (makeFile(installDirPath + "/src/main/" + file)) {
+                countDone++;
             }
         }
 
         // В каталог res создайте три директории: drawables, vectors, icons.
         for (String dir : resDirs) {
-            if (!makeDir(installDirPath + "/res/" + dir)) {
-                return false;
+            countAll++;
+            if (makeDir(installDirPath + "/res/" + dir)) {
+                countDone++;
             }
         }
 
         // В директории temp создайте файл temp.txt.
         for (String file : tempFiles) {
-            if (!makeFile(installDirPath + "/temp/" + file)) {
-                return false;
+            countAll++;
+            if (makeFile(installDirPath + "/temp/" + file)) {
+                countDone++;
             }
         }
 
-        return true;
+        return countDone == countAll;
     }
 
     public static boolean makeDir(String dirPath) {
         File myDir = new File(dirPath);
         if (myDir.exists()) {
-            System.out.println("Каталог уже существует: " + dirPath);
+            logText.append("Каталог уже существует:\t").append(dirPath).append("\n");
             return true;
         }
         if (myDir.mkdir()) {
-            System.out.println("Каталог создан: " + dirPath);
+            logText.append("Каталог успешно создан:\t").append(dirPath).append("\n");
             return true;
         } else {
-            System.out.println("Каталог не создан: " + dirPath);
+            logText.append("Каталог не создан:\t").append(dirPath).append("\n");
             return false;
         }
     }
@@ -83,16 +99,17 @@ public class Main {
     public static boolean makeFile(String filePath) {
         File myFile = new File(filePath);
         if (myFile.exists()) {
-            System.out.println("Файл уже существует: " + myFile);
+            logText.append("Файл уже существует:\t").append(filePath).append("\n");
             return true;
         }
         try {
             if (myFile.createNewFile()) {
-                System.out.println("Файл создан: " + filePath);
+                logText.append("Файл успешно создан:\t").append(filePath).append("\n");
                 return true;
             }
         } catch (IOException ex) {
-            System.out.println("Файл не создан: " + filePath);
+            logText.append("Файл не создан:\t").append(filePath).append("\n");
+            logText.append(ex.getMessage()).append("\n");
             System.out.println(ex.getMessage());
             return false;
         }
